@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Samatha Path — 10,000 Hours</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#151a24; --text:#e9eef6; --muted:#a9b3c6;
+    --green:#4ade80; --accent:#f3aa60; --accent2:#3aa3a1; --border:#2a3243;
+    --padLeft:44px; --rowGap:6px; --lineH:8px;
+  }
+  [data-theme="day"]{
+    --bg:#faf6ea; --panel:#fffaf0; --text:#1d232e; --muted:#5b677a;
+    --green:#2fa04f; --accent:#c9862e; --accent2:#1e8c89; --border:#d8cdb6;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+       font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;
+       display:flex;flex-direction:column;align-items:center;padding:20px;overflow-x:hidden;}
+  h1{margin:0 0 4px;font-weight:900;letter-spacing:.2px}
+  .muted{color:var(--muted)}
+  button,input{font:inherit}
+
+  /* top ribbon */
+  .flags{width:100%;max-width:1100px;height:8px;border-radius:999px;overflow:hidden;margin-bottom:8px;position:relative}
+  .flags::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#3366cc 0 20%,#ffffff 20% 40%,#ff4d4d 40% 60%,#2fa04f 60% 80%,#ffcc00 80% 100%);
+    filter:opacity(.45);animation:slowslide 14s linear infinite;background-size:200% 100%}
+  @keyframes slowslide{0%{background-position:0 0}100%{background-position:-100% 0}}
+
+  /* soft Bodhi leaves */
+  .bg-leaves{position:fixed;inset:0;pointer-events:none;opacity:.08;
+    background:
+      radial-gradient(100px 70px at 10% 15%,var(--accent) 0 2px,transparent 3px) no-repeat,
+      radial-gradient(110px 70px at 85% 30%,var(--accent2) 0 2px,transparent 3px) no-repeat,
+      radial-gradient(120px 80px at 20% 80%,var(--accent) 0 2px,transparent 3px) no-repeat,
+      radial-gradient(110px 70px at 75% 85%,var(--accent2) 0 2px,transparent 3px) no-repeat;}
+
+  /* controls */
+  #controls{margin:8px 0 6px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  input{padding:10px 14px;border-radius:10px;border:1px solid var(--border);
+        background:color-mix(in oklab,var(--panel),#000 7%);color:var(--text)}
+  .btn{padding:10px 14px;border-radius:10px;border:1px solid var(--border);cursor:pointer;
+       background:var(--green);color:#0b140b;font-weight:800}
+  .btn.alt{background:transparent;color:var(--text)}
+  .btn.theme{background:var(--panel);color:var(--text)}
+
+  /* panel */
+  #wrap{width:95vw;max-width:1100px;height:80vh;min-height:520px;background:var(--panel);
+        border:1px solid var(--border);border-radius:14px;padding:20px 24px 20px var(--padLeft);
+        overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:var(--rowGap);
+        box-shadow:0 10px 30px rgba(0,0,0,.25)}
+
+  /* each row is a 2-column grid: [bar][label] */
+  .row{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:12px;position:relative}
+  .seg{position:relative;width:100%;height:var(--lineH);border-radius:999px}
+  .fill{position:absolute;left:0;top:0;height:100%;width:0%;border-radius:999px;background:var(--green);transition:width .9s ease}
+
+  /* alternating rails */
+  .seg[data-c="0"]{background:#2a2f38}
+  .seg[data-c="1"]{background:#20242c}
+  .seg[data-c="2"]{background:#2b303b}
+  .seg[data-c="3"]{background:#232830}
+  .seg[data-c="4"]{background:#2a2f38}
+  .seg[data-c="5"]{background:#20242c}
+  .seg[data-c="6"]{background:#2b303b}
+  .seg[data-c="7"]{background:#232830}
+  .seg[data-c="8"]{background:#2a2f38}
+  .seg[data-c="9"]{background:#20242c}
+  [data-theme="day"] .seg[data-c]{background:color-mix(in oklab,var(--panel),#000 8%)}
+
+  /* lotus at far left (small) */
+  .lotus{position:absolute;left:-24px;top:50%;transform:translateY(-50%);width:16px;height:16px;filter:opacity(.7);
+         background:radial-gradient(circle at 50% 60%,var(--accent) 0 20%,transparent 21%),
+                    radial-gradient(circle at 35% 55%,var(--accent2) 0 18%,transparent 19%),
+                    radial-gradient(circle at 65% 55%,var(--accent2) 0 18%,transparent 19%);border-radius:50%}
+
+  /* milestone lives in its own grid cell (never overlaps bar) */
+  .ms{display:flex;align-items:center;gap:6px}
+  .ms .tick{width:10px;height:2px;background:var(--text);opacity:.9}
+  .ms .label{font-size:.85rem;color:var(--text);
+             background:color-mix(in oklab,var(--panel),#000 7%);
+             border:1px solid var(--border);border-radius:8px;padding:3px 7px;white-space:nowrap}
+
+  .stats{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 0}
+  .pill{padding:6px 10px;border-radius:999px;border:1px solid var(--border);
+        background:color-mix(in oklab,var(--panel),#000 7%);font-weight:700;font-size:.9rem}
+
+  /* --- Mobile polish --- */
+  @media (max-width:640px){
+    body{padding:14px;}
+    #wrap{height:78vh;padding:16px 18px 16px 32px;gap:8px;}
+    .row{column-gap:8px;}
+    .seg{height:7px;}
+    .lotus{left:-20px;width:14px;height:14px;}
+    .ms .label{font-size:.8rem;padding:2px 6px;}
+    .ms .tick{width:8px;}
+    .btn,input{padding:10px 12px;}
+  }
+  @media (max-width:420px){
+    .row{grid-template-columns:1fr;row-gap:4px;}
+    .ms{position:static;transform:none;justify-self:end;}
+    .ms .tick{display:none;}
+    #wrap{padding-right:16px;}
+    .seg{height:7px;}
+  }
+</style>
+</head>
+<body>
+  <div class="bg-leaves"></div>
+  <div class="flags" aria-hidden="true"></div>
+
+  <h1>☸️ Samatha Path</h1>
+  <div class="muted" style="margin-bottom:6px">10,000 hours to mastery • Each line = 250 h</div>
+
+  <div id="controls">
+    <input id="inHours" type="number" min="0" step="0.01" placeholder="Total hours (e.g., 3)" />
+    <button id="btnUpdate" class="btn">Update</button>
+    <button id="btnReset" class="btn alt">Reset</button>
+    <button id="btnTheme" class="btn theme" title="Toggle day/night">Day / Night</button>
+  </div>
+
+  <div id="wrap"></div>
+
+  <div class="stats">
+    <div class="pill">Total: <strong id="outTotal">0</strong> h</div>
+    <div class="pill">Progress: <strong id="outPct">0.00</strong>%</div>
+    <div class="pill">Left: <strong id="outLeft">10 000</strong> h</div>
+  </div>
+
+<script>
+const GOAL=10000, ROWS=40, ROW_SIZE=GOAL/ROWS, COLORS=10;
+// Milestones for every row end: 250, 500, ... 10,000
+const MILESTONES=Array.from({length:ROWS},(_,i)=>({name:`${((i+1)*ROW_SIZE).toLocaleString()}h`}));
+
+const wrap=document.getElementById('wrap'),
+      inHours=document.getElementById('inHours'),
+      btnUpdate=document.getElementById('btnUpdate'),
+      btnReset=document.getElementById('btnReset'),
+      btnTheme=document.getElementById('btnTheme'),
+      outTotal=document.getElementById('outTotal'),
+      outPct=document.getElementById('outPct'),
+      outLeft=document.getElementById('outLeft');
+
+let fills=[];
+
+function build(){
+  wrap.innerHTML=''; fills=[];
+  for(let r=0;r<ROWS;r++){
+    const row=document.createElement('div');row.className='row';
+    const seg=document.createElement('div');seg.className='seg';seg.dataset.c=r%COLORS;
+    const fill=document.createElement('div');fill.className='fill';
+    const lotus=document.createElement('div');lotus.className='lotus';
+    seg.appendChild(fill);
+    const ms=document.createElement('div');ms.className='ms';
+    ms.innerHTML=`<div class="tick"></div><div class="label">${MILESTONES[r].name}</div>`;
+    row.appendChild(seg);row.appendChild(ms);row.appendChild(lotus);
+    wrap.appendChild(row);fills.push(fill);
+  }
+}
+
+function setHours(total){
+  total=Math.max(0,Math.min(Number(total)||0,GOAL));
+  save(total);
+  outTotal.textContent=formatHours(total);
+  const pct=(total/GOAL)*100;
+  outPct.textContent=pct.toFixed(2);
+  outLeft.textContent=formatHours(GOAL-total);
+
+  // progress across rows
+  const units=(total/GOAL)*ROWS;
+  fills.forEach((f,i)=>{
+    const rowProgress=units-i;
+    let w=0;
+    if(rowProgress<=0) w=0;
+    else if(rowProgress>=1) w=100;
+    else w=rowProgress*100;
+
+    const segWidth = f.parentElement.clientWidth;
+    const px = (segWidth * w) / 100;
+
+    // MONOTONIC width: always pixels; tiny floor for any positive progress.
+    const MIN_PX = 4; // minimal visible nub for w>0
+    let widthPx = (w <= 0) ? 0 : Math.max(MIN_PX, px);
+    widthPx = Math.min(widthPx, segWidth); // cap at 100%
+
+    requestAnimationFrame(()=> {
+      f.style.width = Math.round(widthPx) + 'px';
+    });
+  });
+}
+
+btnTheme.addEventListener('click',()=>{
+  const html=document.documentElement;
+  html.setAttribute('data-theme',html.getAttribute('data-theme')==='night'?'day':'night');
+});
+btnUpdate.addEventListener('click',()=>setHours(inHours.value));
+inHours.addEventListener('keydown',e=>{if(e.key==='Enter')setHours(inHours.value);});
+btnReset.addEventListener('click',()=>{if(!confirm('Reset progress?'))return;save(0);setHours(0);inHours.value='';});
+window.addEventListener('resize',()=>{const v=load();build();setHours(v);});
+
+const KEY='med_hours_v12_fix_monotonic';
+const save=v=>localStorage.setItem(KEY,String(v));
+const load=()=>parseFloat(localStorage.getItem(KEY)||'0');
+const formatHours=n=>(Math.round(n*100)/100).toLocaleString(undefined,{maximumFractionDigits:2});
+
+build();
+const start=load();if(start>0)inHours.value=start;setHours(start);
+</script>
+</body>
+</html>
