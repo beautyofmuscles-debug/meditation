@@ -111,7 +111,7 @@
   <div class="flags" aria-hidden="true"></div>
 
   <h1>☸️ Samatha Path</h1>
-  <div class="muted" style="margin-bottom:6px">10,000 hours to mastery • Each line = 250 h</div>
+  <div class="muted" style="margin-bottom:6px">10,000 hours to mastery • Each line = 100 h</div>
 
   <div id="controls">
     <input id="inHours" type="number" min="0" step="0.01" placeholder="Total hours (e.g., 3)" />
@@ -129,8 +129,8 @@
   </div>
 
 <script>
-const GOAL=10000, ROWS=40, ROW_SIZE=GOAL/ROWS, COLORS=10;
-// Milestones for every row end: 250, 500, ... 10,000
+const GOAL=10000, ROWS=100, ROW_SIZE=GOAL/ROWS, COLORS=10; // 100 rows, each 100h
+// Milestones for every row end: 100, 200, ... 10,000
 const MILESTONES=Array.from({length:ROWS},(_,i)=>({name:`${((i+1)*ROW_SIZE).toLocaleString()}h`}));
 
 const wrap=document.getElementById('wrap'),
@@ -199,7 +199,7 @@ inHours.addEventListener('keydown',e=>{if(e.key==='Enter')setHours(inHours.value
 btnReset.addEventListener('click',()=>{if(!confirm('Reset progress?'))return;save(0);setHours(0);inHours.value='';});
 window.addEventListener('resize',()=>{const v=load();build();setHours(v);});
 
-const KEY='med_hours_v12_fix_monotonic';
+const KEY='med_hours_v13_rows100';
 const save=v=>localStorage.setItem(KEY,String(v));
 const load=()=>parseFloat(localStorage.getItem(KEY)||'0');
 const formatHours=n=>(Math.round(n*100)/100).toLocaleString(undefined,{maximumFractionDigits:2});
